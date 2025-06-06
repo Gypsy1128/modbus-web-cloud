@@ -1,0 +1,8 @@
+services:
+  - type: web
+    name: modbus-web
+    env: python
+    plan: free
+    buildCommand: "pip install -r requirements.txt"
+    startCommand: "python modbus_web.py"
+    region: singapore

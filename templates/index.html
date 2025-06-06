@@ -1,0 +1,883 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta content="JustSystems Homepage Builder Version 22.0.2.0 for Windows" name="GENERATOR">
+<meta content="iPadV" name="justsystems:DeviceType">
+<title>Modbus 多寄存器监控</title>
+<style>
+<!--
+
+-->
+</style>
+<script>
+
+    function toggleState(id) {
+      const img = document.getElementById('img_' + id);
+      if (!img) return;
+      const current = img.getAttribute('data-state');
+      let next = 'offline';
+      if (current === 'true') next = 'false';
+      else if (current === 'false') next = 'true';
+      else next = 'true';
+      img.src = next === 'true' ? '/static/ON.gif' :
+                next === 'false' ? '/static/OFF.gif' :
+                '/static/OFFLINE.gif';
+      img.setAttribute('data-state', next);
+    }
+
+    function writeValue(id) {
+      const img = document.getElementById('img_' + id);
+      if (!img) return;
+      const value = img.getAttribute('data-state');
+      fetch('/write_value', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ id: id, value: value })
+      })
+      .then(response => response.text())
+      .then(data => alert(data))
+      .catch(error => alert("写入失败: " + error));
+    }
+
+    function updateData() {
+      fetch('/data')
+        .then(res => res.json())
+        .then(data => {
+          document.getElementById('timestamp').innerText = data.timestamp;
+          for (const key in data.values) {
+            // 对 Coil 和 Status 类型的寄存器使用图片显示
+            if (key.startsWith("Coil_") || key.startsWith("Status_")) {
+              updateImageState(key, String(data.values[key]));
+            } else {
+              const cell = document.getElementById(key);
+              if (cell) {
+                cell.innerText = data.values[key];
+                if (data.values[key] === '错误' || data.values[key] === '读取失败') {
+                  cell.classList.add('fail');
+                } else {
+                  cell.classList.remove('fail');
+                }
+              }
+            }
+          }
+        });
+    }
+
+    function writeValue(regName) {
+      const input = document.getElementById('input_' + regName);
+      const value = input.value;
+
+      const formData = new FormData();
+      formData.append('reg_name', regName);
+      formData.append('value', value);
+
+      fetch('/write', {
+        method: 'POST',
+        body: formData
+      })
+      .then(res => res.text())
+      .then(text => {
+        alert(regName + ' 写入结果: ' + text);
+        updateData();
+      });
+    }
+
+    setInterval(updateData, 1000);
+    window.onload = updateData;
+  
+    function updateImageState(id, value) {
+      const img = document.getElementById('img_' + id);
+      if (!img) return;
+
+      // 转换为字符串进行比较，确保即使后端返回数字也能匹配
+      const stringValue = String(value);
+
+      if (stringValue === '1' || stringValue === 'true') {
+        img.src = '/static/ON.gif';
+      } else if (stringValue === '0' || stringValue === 'false') {
+        img.src = '/static/OFF.gif';
+      } else {
+        // 任何其他非 '1'/'true' 或 '0'/'false' 的值都显示 OFFLINE
+        img.src = '/static/OFFLINE.gif';
+      }
+    }
+</script>
+</head>
+<body>
+<h1>オクージオV　４次試作機　監視システム</h1>
+<p>更新時刻：<span id="timestamp">--</span></p>
+<p><img border="0" height="644" src="AHU.jpg" style="width : 312px;height : 263px;" width="765"></p>
+<h2>Coil</h2>
+<table>
+<tr>
+    <th style="width : 83px;">寄存器</th>
+    <th style="width : 32px;">当前值</th>
+    <th>写入值</th>
+    <th>操作</th>
+  </tr>
+<tr>
+    <td style="width : 83px;">Coil_001</td>
+    <td id="Coil_001" style="width : 32px;"><img border="0" id="img_Coil_001" src="OFFLINE.gif" style="width: 60px; height: 30px;" width="62" height="32"></td>
+    <td>
+<input id="input_Coil_001" style="width: 80px;" type="text"/>
+</td>
+<td>
+<button onclick="writeValue('Coil_001')">写入</button>
+</td>
+</tr>
+<tr>
+    <td style="width : 83px;">Coil_002</td>
+    <td id="Coil_002" style="width : 32px;"><img border="0" id="img_Coil_002" src="OFFLINE.gif" style="width: 60px; height: 30px;" width="62" height="32"></td>
+    <td>
+<input id="input_Coil_002" style="width: 80px;" type="text"/>
+</td>
+<td>
+<button onclick="writeValue('Coil_002')">写入</button>
+</td>
+</tr>
+<tr>
+    <td style="width : 83px;">Coil_003</td>
+    <td id="Coil_003" style="width : 32px;"><img border="0" id="img_Coil_003" src="OFFLINE.gif" style="width: 60px; height: 30px;" width="62" height="32"></td>
+    <td>
+<input id="input_Coil_003" style="width: 80px;" type="text"/>
+</td>
+<td>
+<button onclick="writeValue('Coil_003')">写入</button>
+</td>
+</tr>
+<tr>
+    <td style="width : 83px;">Coil_004</td>
+    <td id="Coil_004" style="width : 32px;"><img border="0" id="img_Coil_004" src="OFFLINE.gif" style="width: 60px; height: 30px;" width="62" height="32"></td>
+    <td>
+<input id="input_Coil_004" style="width: 80px;" type="text"/>
+</td>
+<td>
+<button onclick="writeValue('Coil_004')">写入</button>
+</td>
+</tr>
+<tr>
+    <td style="width : 83px;">Coil_005</td>
+    <td id="Coil_005" style="width : 32px;"><img border="0" id="img_Coil_005" src="OFFLINE.gif" style="width: 60px; height: 30px;" width="62" height="32"></td>
+    <td>
+<input id="input_Coil_005" style="width: 80px;" type="text"/>
+</td>
+<td>
+<button onclick="writeValue('Coil_005')">写入</button>
+</td>
+</tr>
+<tr>
+    <td style="width : 83px;">Coil_006</td>
+    <td id="Coil_006" style="width : 32px;"><img border="0" id="img_Coil_006" src="OFFLINE.gif" style="width: 60px; height: 30px;" width="62" height="32"></td>
+    <td>
+<input id="input_Coil_006" style="width: 80px;" type="text"/>
+</td>
+<td>
+<button onclick="writeValue('Coil_006')">写入</button>
+</td>
+</tr>
+<tr>
+    <td style="width : 83px;">Coil_007</td>
+    <td id="Coil_007" style="width : 32px;"><img border="0" id="img_Coil_007" src="OFFLINE.gif" style="width: 60px; height: 30px;" width="62" height="32"></td>
+    <td>
+<input id="input_Coil_007" style="width: 80px;" type="text"/>
+</td>
+<td>
+<button onclick="writeValue('Coil_007')">写入</button>
+</td>
+</tr>
+<tr>
+    <td style="width : 83px;">Coil_008</td>
+    <td id="Coil_008" style="width : 32px;"><img border="0" id="img_Coil_008" src="OFFLINE.gif" style="width: 60px; height: 30px;" width="62" height="32"></td>
+    <td>
+<input id="input_Coil_008" style="width: 80px;" type="text"/>
+</td>
+<td>
+<button onclick="writeValue('Coil_008')">写入</button>
+</td>
+</tr>
+<tr>
+    <td style="width : 83px;">Coil_009</td>
+    <td id="Coil_009" style="width : 32px;"><img border="0" id="img_Coil_009" src="OFFLINE.gif" style="width: 60px; height: 30px;" width="62" height="32"></td>
+    <td>
+<input id="input_Coil_009" style="width: 80px;" type="text"/>
+</td>
+<td>
+<button onclick="writeValue('Coil_009')">写入</button>
+</td>
+</tr>
+<tr>
+    <td style="width : 83px;">Coil_010</td>
+    <td id="Coil_010" style="width : 32px;"><img border="0" id="img_Coil_010" src="OFFLINE.gif" style="width: 60px; height: 30px;" width="62" height="32"></td>
+    <td>
+<input id="input_Coil_010" style="width: 80px;" type="text"/>
+</td>
+<td>
+<button onclick="writeValue('Coil_010')">写入</button>
+</td>
+</tr>
+<tr>
+    <td style="width : 83px;">Coil_011</td>
+    <td id="Coil_011" style="width : 32px;"><img border="0" id="img_Coil_011" src="OFFLINE.gif" style="width: 60px; height: 30px;" width="62" height="32"></td>
+    <td>
+<input id="input_Coil_011" style="width: 80px;" type="text"/>
+</td>
+<td>
+<button onclick="writeValue('Coil_011')">写入</button>
+</td>
+</tr>
+<tr>
+    <td style="width : 83px;">Coil_012</td>
+    <td id="Coil_012" style="width : 32px;"><img border="0" id="img_Coil_012" src="OFFLINE.gif" style="width: 60px; height: 30px;" width="62" height="32"></td>
+    <td>
+<input id="input_Coil_012" style="width: 80px;" type="text"/>
+</td>
+<td>
+<button onclick="writeValue('Coil_012')">写入</button>
+</td>
+</tr>
+<tr>
+    <td style="width : 83px;">Coil_013</td>
+    <td id="Coil_013" style="width : 32px;"><img border="0" id="img_Coil_013" src="OFFLINE.gif" style="width: 60px; height: 30px;" width="62" height="32"></td>
+    <td>
+<input id="input_Coil_013" style="width: 80px;" type="text"/>
+</td>
+<td>
+<button onclick="writeValue('Coil_013')">写入</button>
+</td>
+</tr>
+<tr>
+    <td style="width : 83px;">Coil_014</td>
+    <td id="Coil_014" style="width : 32px;"><img border="0" id="img_Coil_014" src="OFFLINE.gif" style="width: 60px; height: 30px;" width="62" height="32"></td>
+    <td>
+<input id="input_Coil_014" style="width: 80px;" type="text"/>
+</td>
+<td>
+<button onclick="writeValue('Coil_014')">写入</button>
+</td>
+</tr>
+<tr>
+    <td style="width : 83px;">Coil_015</td>
+    <td id="Coil_015" style="width : 32px;"><img border="0" id="img_Coil_015" src="OFFLINE.gif" style="width: 60px; height: 30px;" width="62" height="32"></td>
+    <td>
+<input id="input_Coil_015" style="width: 80px;" type="text"/>
+</td>
+<td>
+<button onclick="writeValue('Coil_015')">写入</button>
+</td>
+</tr>
+<tr>
+    <td style="width : 83px;">Coil_016</td>
+    <td id="Coil_016" style="width : 32px;"><img border="0" id="img_Coil_016" src="OFFLINE.gif" style="width: 60px; height: 30px;" width="62" height="32"></td>
+    <td>
+<input id="input_Coil_016" style="width: 80px;" type="text"/>
+</td>
+<td>
+<button onclick="writeValue('Coil_016')">写入</button>
+</td>
+</tr>
+</table>
+<h2>Status</h2>
+<table>
+<tr><th>寄存器</th><th>当前值</th><th>写入值</th><th>操作</th></tr>
+<tr>
+<td>Status_001</td>
+<td id="Status_001"><img border="0" id="img_Status_001" src="OFFLINE.gif" style="width: 60px; height: 30px;" width="62" height="32"></td>
+<td>
+        
+        -
+        
+      </td>
+<td>
+        
+        -
+        
+      </td>
+</tr>
+<tr>
+<td>Status_002</td>
+<td id="Status_002"><img border="0" id="img_Status_002" src="OFFLINE.gif" style="width: 60px; height: 30px;" width="62" height="32"></td>
+<td>
+        
+        -
+        
+      </td>
+<td>
+        
+        -
+        
+      </td>
+</tr>
+<tr>
+<td>Status_003</td>
+<td id="Status_003"><img border="0" id="img_Status_003" src="OFFLINE.gif" style="width: 60px; height: 30px;" width="62" height="32"></td>
+<td>
+        
+        -
+        
+      </td>
+<td>
+        
+        -
+        
+      </td>
+</tr>
+<tr>
+<td>Status_004</td>
+<td id="Status_004"><img border="0" id="img_Status_004" src="OFFLINE.gif" style="width: 60px; height: 30px;" width="62" height="32"></td>
+<td>
+        
+        -
+        
+      </td>
+<td>
+        
+        -
+        
+      </td>
+</tr>
+<tr>
+<td>Status_005</td>
+<td id="Status_005"><img border="0" id="img_Status_005" src="OFFLINE.gif" style="width: 60px; height: 30px;" width="62" height="32"></td>
+<td>
+        
+        -
+        
+      </td>
+<td>
+        
+        -
+        
+      </td>
+</tr>
+<tr>
+<td>Status_006</td>
+<td id="Status_006"><img border="0" id="img_Status_006" src="OFFLINE.gif" style="width: 60px; height: 30px;" width="62" height="32"></td>
+<td>
+        
+        -
+        
+      </td>
+<td>
+        
+        -
+        
+      </td>
+</tr>
+<tr>
+<td>Status_007</td>
+<td id="Status_007"><img border="0" id="img_Status_007" src="OFFLINE.gif" style="width: 60px; height: 30px;" width="62" height="32"></td>
+<td>
+        
+        -
+        
+      </td>
+<td>
+        
+        -
+        
+      </td>
+</tr>
+<tr>
+<td>Status_008</td>
+<td id="Status_008"><img border="0" id="img_Status_008" src="OFFLINE.gif" style="width: 60px; height: 30px;" width="62" height="32"></td>
+<td>
+        
+        -
+        
+      </td>
+<td>
+        
+        -
+        
+      </td>
+</tr>
+<tr>
+<td>Status_009</td>
+<td id="Status_009"><img border="0" id="img_Status_009" src="OFFLINE.gif" style="width: 60px; height: 30px;" width="62" height="32"></td>
+<td>
+        
+        -
+        
+      </td>
+<td>
+        
+        -
+        
+      </td>
+</tr>
+<tr>
+<td>Status_010</td>
+<td id="Status_010"><img border="0" id="img_Status_010" src="OFFLINE.gif" style="width: 60px; height: 30px;" width="62" height="32"></td>
+<td>
+        
+        -
+        
+      </td>
+<td>
+        
+        -
+        
+      </td>
+</tr>
+<tr>
+<td>Status_011</td>
+<td id="Status_011"><img border="0" id="img_Status_011" src="OFFLINE.gif" style="width: 60px; height: 30px;" width="62" height="32"></td>
+<td>
+        
+        -
+        
+      </td>
+<td>
+        
+        -
+        
+      </td>
+</tr>
+<tr>
+<td>Status_012</td>
+<td id="Status_012"><img border="0" id="img_Status_012" src="OFFLINE.gif" style="width: 60px; height: 30px;" width="62" height="32"></td>
+<td>
+        
+        -
+        
+      </td>
+<td>
+        
+        -
+        
+      </td>
+</tr>
+</table>
+<h2>Input</h2>
+<table>
+<tr><th>寄存器</th><th>当前值</th><th>写入值</th><th>操作</th></tr>
+<tr>
+<td>Input_001</td>
+<td id="Input_001">--</td>
+<td>
+        
+        -
+        
+      </td>
+<td>
+        
+        -
+        
+      </td>
+</tr>
+<tr>
+<td>Input_003</td>
+<td id="Input_003">--</td>
+<td>
+        
+        -
+        
+      </td>
+<td>
+        
+        -
+        
+      </td>
+</tr>
+<tr>
+<td>Input_005</td>
+<td id="Input_005">--</td>
+<td>
+        
+        -
+        
+      </td>
+<td>
+        
+        -
+        
+      </td>
+</tr>
+<tr>
+<td>Input_007</td>
+<td id="Input_007">--</td>
+<td>
+        
+        -
+        
+      </td>
+<td>
+        
+        -
+        
+      </td>
+</tr>
+<tr>
+<td>Input_009</td>
+<td id="Input_009">--</td>
+<td>
+        
+        -
+        
+      </td>
+<td>
+        
+        -
+        
+      </td>
+</tr>
+<tr>
+<td>Input_011</td>
+<td id="Input_011">--</td>
+<td>
+        
+        -
+        
+      </td>
+<td>
+        
+        -
+        
+      </td>
+</tr>
+<tr>
+<td>Input_013</td>
+<td id="Input_013">--</td>
+<td>
+        
+        -
+        
+      </td>
+<td>
+        
+        -
+        
+      </td>
+</tr>
+<tr>
+<td>Input_015</td>
+<td id="Input_015">--</td>
+<td>
+        
+        -
+        
+      </td>
+<td>
+        
+        -
+        
+      </td>
+</tr>
+<tr>
+<td>Input_017</td>
+<td id="Input_017">--</td>
+<td>
+        
+        -
+        
+      </td>
+<td>
+        
+        -
+        
+      </td>
+</tr>
+<tr>
+<td>Input_019</td>
+<td id="Input_019">--</td>
+<td>
+        
+        -
+        
+      </td>
+<td>
+        
+        -
+        
+      </td>
+</tr>
+</table>
+<h2>Hold</h2>
+<table>
+<tr><th>寄存器</th><th>当前值</th><th>写入值</th><th>操作</th></tr>
+<tr>
+<td>Hold_001</td>
+<td id="Hold_001">--</td>
+<td>
+<input id="input_Hold_001" style="width: 80px;" type="text"/>
+</td>
+<td>
+<button onclick="writeValue('Hold_001')">写入</button>
+</td>
+</tr>
+<tr>
+<td>Hold_003</td>
+<td id="Hold_003">--</td>
+<td>
+<input id="input_Hold_003" style="width: 80px;" type="text"/>
+</td>
+<td>
+<button onclick="writeValue('Hold_003')">写入</button>
+</td>
+</tr>
+<tr>
+<td>Hold_005</td>
+<td id="Hold_005">--</td>
+<td>
+<input id="input_Hold_005" style="width: 80px;" type="text"/>
+</td>
+<td>
+<button onclick="writeValue('Hold_005')">写入</button>
+</td>
+</tr>
+<tr>
+<td>Hold_007</td>
+<td id="Hold_007">--</td>
+<td>
+<input id="input_Hold_007" style="width: 80px;" type="text"/>
+</td>
+<td>
+<button onclick="writeValue('Hold_007')">写入</button>
+</td>
+</tr>
+<tr>
+<td>Hold_009</td>
+<td id="Hold_009">--</td>
+<td>
+<input id="input_Hold_009" style="width: 80px;" type="text"/>
+</td>
+<td>
+<button onclick="writeValue('Hold_009')">写入</button>
+</td>
+</tr>
+<tr>
+<td>Hold_011</td>
+<td id="Hold_011">--</td>
+<td>
+<input id="input_Hold_011" style="width: 80px;" type="text"/>
+</td>
+<td>
+<button onclick="writeValue('Hold_011')">写入</button>
+</td>
+</tr>
+<tr>
+<td>Hold_013</td>
+<td id="Hold_013">--</td>
+<td>
+<input id="input_Hold_013" style="width: 80px;" type="text"/>
+</td>
+<td>
+<button onclick="writeValue('Hold_013')">写入</button>
+</td>
+</tr>
+<tr>
+<td>Hold_015</td>
+<td id="Hold_015">--</td>
+<td>
+<input id="input_Hold_015" style="width: 80px;" type="text"/>
+</td>
+<td>
+<button onclick="writeValue('Hold_015')">写入</button>
+</td>
+</tr>
+<tr>
+<td>Hold_017</td>
+<td id="Hold_017">--</td>
+<td>
+<input id="input_Hold_017" style="width: 80px;" type="text"/>
+</td>
+<td>
+<button onclick="writeValue('Hold_017')">写入</button>
+</td>
+</tr>
+<tr>
+<td>Hold_019</td>
+<td id="Hold_019">--</td>
+<td>
+<input id="input_Hold_019" style="width: 80px;" type="text"/>
+</td>
+<td>
+<button onclick="writeValue('Hold_019')">写入</button>
+</td>
+</tr>
+<tr>
+<td>Hold_021</td>
+<td id="Hold_021">--</td>
+<td>
+<input id="input_Hold_021" style="width: 80px;" type="text"/>
+</td>
+<td>
+<button onclick="writeValue('Hold_021')">写入</button>
+</td>
+</tr>
+<tr>
+<td>Hold_023</td>
+<td id="Hold_023">--</td>
+<td>
+<input id="input_Hold_023" style="width: 80px;" type="text"/>
+</td>
+<td>
+<button onclick="writeValue('Hold_023')">写入</button>
+</td>
+</tr>
+<tr>
+<td>Hold_031</td>
+<td id="Hold_031">--</td>
+<td>
+<input id="input_Hold_031" style="width: 80px;" type="text"/>
+</td>
+<td>
+<button onclick="writeValue('Hold_031')">写入</button>
+</td>
+</tr>
+<tr>
+<td>Hold_033</td>
+<td id="Hold_033">--</td>
+<td>
+<input id="input_Hold_033" style="width: 80px;" type="text"/>
+</td>
+<td>
+<button onclick="writeValue('Hold_033')">写入</button>
+</td>
+</tr>
+<tr>
+<td>Hold_035</td>
+<td id="Hold_035">--</td>
+<td>
+<input id="input_Hold_035" style="width: 80px;" type="text"/>
+</td>
+<td>
+<button onclick="writeValue('Hold_035')">写入</button>
+</td>
+</tr>
+<tr>
+<td>Hold_037</td>
+<td id="Hold_037">--</td>
+<td>
+<input id="input_Hold_037" style="width: 80px;" type="text"/>
+</td>
+<td>
+<button onclick="writeValue('Hold_037')">写入</button>
+</td>
+</tr>
+<tr>
+<td>Hold_039</td>
+<td id="Hold_039">--</td>
+<td>
+<input id="input_Hold_039" style="width: 80px;" type="text"/>
+</td>
+<td>
+<button onclick="writeValue('Hold_039')">写入</button>
+</td>
+</tr>
+<tr>
+<td>Hold_041</td>
+<td id="Hold_041">--</td>
+<td>
+<input id="input_Hold_041" style="width: 80px;" type="text"/>
+</td>
+<td>
+<button onclick="writeValue('Hold_041')">写入</button>
+</td>
+</tr>
+<tr>
+<td>Hold_043</td>
+<td id="Hold_043">--</td>
+<td>
+<input id="input_Hold_043" style="width: 80px;" type="text"/>
+</td>
+<td>
+<button onclick="writeValue('Hold_043')">写入</button>
+</td>
+</tr>
+<tr>
+<td>Hold_045</td>
+<td id="Hold_045">--</td>
+<td>
+<input id="input_Hold_045" style="width: 80px;" type="text"/>
+</td>
+<td>
+<button onclick="writeValue('Hold_045')">写入</button>
+</td>
+</tr>
+<tr>
+<td>Hold_047</td>
+<td id="Hold_047">--</td>
+<td>
+<input id="input_Hold_047" style="width: 80px;" type="text"/>
+</td>
+<td>
+<button onclick="writeValue('Hold_047')">写入</button>
+</td>
+</tr>
+<tr>
+<td>Hold_049</td>
+<td id="Hold_049">--</td>
+<td>
+<input id="input_Hold_049" style="width: 80px;" type="text"/>
+</td>
+<td>
+<button onclick="writeValue('Hold_049')">写入</button>
+</td>
+</tr>
+<tr>
+<td>Hold_051</td>
+<td id="Hold_051">--</td>
+<td>
+<input id="input_Hold_051" style="width: 80px;" type="text"/>
+</td>
+<td>
+<button onclick="writeValue('Hold_051')">写入</button>
+</td>
+</tr>
+<tr>
+<td>Hold_053</td>
+<td id="Hold_053">--</td>
+<td>
+<input id="input_Hold_053" style="width: 80px;" type="text"/>
+</td>
+<td>
+<button onclick="writeValue('Hold_053')">写入</button>
+</td>
+</tr>
+<tr>
+<td>Hold_055</td>
+<td id="Hold_055">--</td>
+<td>
+<input id="input_Hold_055" style="width: 80px;" type="text"/>
+</td>
+<td>
+<button onclick="writeValue('Hold_055')">写入</button>
+</td>
+</tr>
+<tr>
+<td>Hold_057</td>
+<td id="Hold_057">--</td>
+<td>
+<input id="input_Hold_057" style="width: 80px;" type="text"/>
+</td>
+<td>
+<button onclick="writeValue('Hold_057')">写入</button>
+</td>
+</tr>
+<tr>
+<td>Hold_059</td>
+<td id="Hold_059">--</td>
+<td>
+<input id="input_Hold_059" style="width: 80px;" type="text"/>
+</td>
+<td>
+<button onclick="writeValue('Hold_059')">写入</button>
+</td>
+</tr>
+<tr>
+<td>Hold_061</td>
+<td id="Hold_061">--</td>
+<td>
+<input id="input_Hold_061" style="width: 80px;" type="text"/>
+</td>
+<td>
+<button onclick="writeValue('Hold_061')">写入</button>
+</td>
+</tr>
+</table>
+</body>
+</html>
