@@ -106,3 +106,4 @@ def write_value():
             return "不支持的寄存器或名称错误", 400
     except Exception as e:
         return f"写入时发生错误: {str(e)}", 500
+# force redeploy
